@@ -11,3 +11,10 @@ __pycache__/
 # Environment variables
 .env
 *.env
+
+# Secrets directory
+secrets/
+*.key
+*.pem
+*.crt
+
