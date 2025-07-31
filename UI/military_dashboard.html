@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Military AI Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #e2e2e2;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #00ff9f;
+        }
+
+        #log {
+            white-space: pre-wrap;
+            background: #333;
+            padding: 10px;
+            border-radius: 5px;
+            height: 300px;
+            overflow-y: scroll;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin-top: 10px;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #00ff9f;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Military LLM Assistant</h1>
+    <div>
+        <label for="task">Enter a task:</label>
+        <textarea id="task"></textarea>
+        <br />
+        <button onclick="runTask()">Run Orchestration</button>
+    </div>
+    <h2>Output Log:</h2>
+    <div id="log">Awaiting task...</div>
+
+    <script>
+        async function runTask() {
+            const task = document.getElementById("task").value;
+            const logDiv = document.getElementById("log");
+            logDiv.innerText = "Running orchestration...\n";
+
+            try {
+                const response = await fetch("http://localhost:8000/orchestrate", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ task })
+                });
+
+                const result = await response.json();
+                logDiv.innerText += `\n--- DONE ---\n\n${result.output}`;
+            } catch (err) {
+                logDiv.innerText += `\nError: ${err.message}`;
+            }
+        }
+    </script>
+</body>
+
+</html>

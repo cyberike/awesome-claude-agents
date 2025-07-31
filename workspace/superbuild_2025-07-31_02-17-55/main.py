@@ -1,0 +1,1 @@
+from devops_engineer import DevOpsEngineer\n\nengineer = DevOpsEngineer("John")\nengineer.receive_task("Build and deploy the web application")\nengineer.execute_task()\n

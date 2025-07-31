@@ -4,7 +4,10 @@ import json
 import datetime
 from agent_loader import call_agent
 
+
 def run_orchestration(task):
+    final_output = {}
+
     # Step 1: Tech Lead generates task breakdown
     tech_lead_output = call_agent(
         "tech-lead-orchestrator",
@@ -44,13 +47,17 @@ def run_orchestration(task):
         return
 
     # Step 4: Dispatch subtasks to sub-agents
-    final_outputs = []
     for agent_name, subtask in subtask_map.items():
         subtasks = subtask if isinstance(subtask, list) else [subtask]
         for i, each_task in enumerate(subtasks):
             print(f"\n📣 Calling {agent_name} (subtask {i+1})...")
             result = call_agent(agent_name, each_task)
-            final_outputs.append({"agent": agent_name, "task": each_task, "result": result})
+            if agent_name not in final_output:
+                final_output[agent_name] = []
+            final_output[agent_name].append({
+                "task": each_task,
+                "result": result
+            })
             print(f"✅ {agent_name} completed subtask {i+1}:\n{result}")
 
     print("\n✅ All subtasks completed.\n")
@@ -59,18 +66,16 @@ def run_orchestration(task):
     timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     output_path = f"orchestration_output_{timestamp}.json"
     with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(final_outputs, f, indent=2)
+        json.dump(final_output, f, indent=2)
     print(f"\n💾 Results saved to {output_path}")
 
     # Step 6: Create markdown files for each agent if not already present
     os.makedirs("agents/orchestrators", exist_ok=True)
-    for entry in final_outputs:
-        agent_name = entry["agent"]
-        task_description = entry["task"]
-        result = entry["result"]
-
+    for agent_name in final_output:
         file_path = os.path.join("agents", "orchestrators", f"{agent_name}.md")
         if not os.path.exists(file_path):
+            # Use the first task as a sample for the .md prompt
+            task_description = final_output[agent_name][0]["task"]
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(f"# {agent_name.replace('-', ' ').title()}\n\n")
                 f.write("## Task\n")
@@ -84,3 +89,5 @@ def run_orchestration(task):
             print(f"📄 Created new prompt file: {file_path}")
         else:
             print(f"⚠️ Prompt file already exists: {file_path}")
+
+    return final_output
