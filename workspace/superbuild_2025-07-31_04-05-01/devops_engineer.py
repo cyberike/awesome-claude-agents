@@ -1,0 +1,1 @@
+def receive_task(task):\n    if task.startswith("Build task:"):\n        output = task.split("Build task:")[1].strip()\n        print(output)\n    else:\n        raise ValueError("Invalid task format")\n\nif __name__ == "__main__":\n    task = "Build task: Output this message"\n    receive_task(task)
