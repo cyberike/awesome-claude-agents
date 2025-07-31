@@ -1,6 +1,13 @@
+# Python cache and compiled files
 __pycache__/
 *.pyc
-*.json
+
+# Virtual environments
 .venv/
+
+# IDE settings
 .vscode/
 
+# Environment variables
+.env
+*.env
