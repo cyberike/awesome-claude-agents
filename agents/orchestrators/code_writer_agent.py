@@ -1,33 +1,65 @@
 import os
 import anthropic
 import json
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
 
+def clean_claude_json(text):
+    # Remove code fences and any accidental formatting
+    text = text.strip().strip("`")
+
+    if text.lower().startswith("json"):
+        text = text[4:]
+
+    # Remove control characters
+    text = re.sub(r"[\x00-\x1F\x7F]", "", text)
+
+    # Escape backslashes and control codes that break JSON loading
+    text = text.replace("\\n", "\\\\n").replace("\\t", "\\\\t").replace("\\r", "")
+
+    return text.strip()
+
+
 def run(task):
     client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
-    system_prompt = "You are a highly skilled software engineer who completes assigned subtasks in a clear, actionable way."
-
-    if "project_analyst" in __file__:
-        system_prompt = "You are a project analyst. Given a technical breakdown, return valid JSON that maps agent names to subtasks. Output only a valid JSON object."
+    system_prompt = (
+        "You are an expert AI software engineer. Your job is to write real Python code "
+        "based on functional descriptions or markdown specs. Return a JSON object containing "
+        "a 'files' array, where each item has a 'filename' and its 'content'.\n\n"
+        "Format:\n"
+        "{\n"
+        "  \"files\": [\n"
+        "    {\"filename\": \"main.py\", \"content\": \"print('hello world')\" }\n"
+        "  ]\n"
+        "}\n\n"
+        "Do not return markdown, triple backticks, or any explanations. Return only JSON."
+    )
 
     response = client.messages.create(
         model="claude-3-opus-20240229",
-        max_tokens=1024,
-        temperature=0.3,
+        max_tokens=4096,
+        temperature=0.2,
         system=system_prompt,
-        messages=[{"role": "user", "content": task}]
+        messages=[
+            {
+                "role": "user",
+                "content": task
+            }
+        ]
     )
 
-    text = response.content[0].text.strip()
+    raw_text = response.content[0].text.strip()
 
     try:
-        return json.loads(text) if "project_analyst" in __file__ else {
-            "agent": "code_writer_agent",
-            "status": "completed",
-            "output": text
-        }
+        cleaned = clean_claude_json(raw_text)
+        return json.loads(cleaned)
+
     except Exception as e:
-        raise ValueError(f"Claude returned non-JSON for {agent_name}:\n{text}\n\nError: {e}")
+        # Save the raw output for inspection
+        with open("debug_claude_raw.txt", "w", encoding="utf-8") as f:
+            f.write(raw_text)
+
+        raise ValueError(f"Claude returned invalid JSON.\n\nCleaned:\n{cleaned}\n\nError: {e}")
