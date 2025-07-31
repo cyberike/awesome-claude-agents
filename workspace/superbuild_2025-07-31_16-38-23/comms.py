@@ -1,0 +1,1 @@
+def transmit_data(data):\n    # TODO: Implement wireless data transmission\n    pass\n\ndef receive_command():\n    # TODO: Implement receiving remote commands\n    pass

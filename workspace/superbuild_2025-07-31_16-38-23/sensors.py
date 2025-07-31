@@ -1,0 +1,1 @@
+def detect_strokes():\n    # TODO: Implement stroke detection using sensors\n    pass\n\ndef detect_vibration():\n    # TODO: Implement vibration detection using sensors\n    pass
