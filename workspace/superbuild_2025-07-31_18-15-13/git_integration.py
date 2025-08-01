@@ -1,0 +1,1 @@
+import git\n\nclass GitIntegration:\n    def __init__(self, repo_path):\n        self.repo = git.Repo(repo_path)\n        \n    def commit_changes(self, message):\n        self.repo.git.add(all=True)\n        self.repo.index.commit(message)\n        \n    def push_changes(self):\n        origin = self.repo.remote(name='origin')\n        origin.push()

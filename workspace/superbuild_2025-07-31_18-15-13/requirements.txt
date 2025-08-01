@@ -1,0 +1,1 @@
+numpy\nsounddevice\nspeech_recognition\npyttsx3\nPyQt5\ngitpython

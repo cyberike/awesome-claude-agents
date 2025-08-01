@@ -1,0 +1,1 @@
+import numpy as np\n\nclass QuantizedModel:\n    def __init__(self, model_path):\n        self.model = np.load(model_path)\n        \n    def inference(self, input_data):\n        # Perform inference using the quantized model\n        output = np.dot(input_data, self.model)\n        return output
