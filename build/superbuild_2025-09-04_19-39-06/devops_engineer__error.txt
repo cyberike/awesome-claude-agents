@@ -1,0 +1,3 @@
+RuntimeError: Error running agent 'devops_engineer': 'charmap' codec can't encode character '\u2705' in position 574: character maps to <undefined>
+
+NoneType: None

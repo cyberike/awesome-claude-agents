@@ -45,29 +45,52 @@ load_dotenv()
 def run(task):
     client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
-    system_prompt = "You are a highly skilled software engineer who completes assigned subtasks in a clear, actionable way."
+    # Extract role-specific prompt if this is a structured task
+    if isinstance(task, dict):
+        role = task.get("role", "{agent_name}")
+        task_hint = task.get("task_hint", "")
+        context = task.get("context", "")
+        
+        system_prompt = f"""You are a {{role}}. {{task_hint}}
+        
+Given the context: {{context}}
 
-    if "project_analyst" in __file__:
-        system_prompt = "You are a project analyst. Given a technical breakdown, return valid JSON that maps agent names to subtasks. Output only a valid JSON object."
+Return a JSON object with this exact structure:
+{{{{
+    "markdown": "A detailed markdown report of your analysis and recommendations",
+    "files": {{{{
+        "relative/path/to/file": "file content here",
+        "another/file.py": "more content"
+    }}}}
+}}}}
+
+The markdown should be a professional report. The files object is optional - only include it if you need to create actual code or config files."""
+        
+        user_content = f"Task: {{task_hint}}\\nContext: {{context}}"
+    else:
+        system_prompt = "You are a highly skilled software engineer who completes assigned subtasks in a clear, actionable way. Return your response as a JSON object with 'markdown' field containing your detailed analysis."
+        user_content = str(task)
 
     response = client.messages.create(
-        model="claude-3-opus-20240229",
-        max_tokens=1024,
+        model="claude-3-5-sonnet-20241022",
+        max_tokens=2000,
         temperature=0.3,
         system=system_prompt,
-        messages=[{{"role": "user", "content": task}}]
+        messages=[{{"role": "user", "content": user_content}}]
     )
 
     text = response.content[0].text.strip()
 
+    # Try to parse as JSON first
     try:
-        return json.loads(text) if "project_analyst" in __file__ else {{
-            "agent": "{agent_name}",
-            "status": "completed",
-            "output": text
+        result = json.loads(text)
+        return result
+    except json.JSONDecodeError:
+        # Fallback: return as markdown string
+        return {{
+            "markdown": text,
+            "files": None
         }}
-    except Exception as e:
-        raise ValueError(f"Claude returned non-JSON for {{agent_name}}:\\n{{text}}\\n\\nError: {{e}}")
 ''')
             print(f"[!] Auto-created missing agent: {agent_file_path}")
 

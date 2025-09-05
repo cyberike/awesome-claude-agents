@@ -1,1 +1,9 @@
-def detect_strokes():\n    # TODO: Implement stroke detection using sensors\n    pass\n\ndef detect_vibration():\n    # TODO: Implement vibration detection using sensors\n    pass
+# sensors.py
+
+def read_sensor_data():
+    # Placeholder for stroke or vibration sensor reading logic
+    print("Reading telemetry sensor data...")
+    return {
+        "stroke_rate": 12,       # dummy data
+        "vibration_level": 3.4   # dummy data
+    }
